@@ -1,0 +1,11 @@
+<!--pages/invoiceList/invoiceList.wxml-->
+<view class="container">
+    <view wx:if="${{!loaded}}">
+        <text class="cuIcon-loading2 iconfont-spin"></text>
+    </view>
+    <scroll-view>
+        <view id="demo1">1</view>
+        <view id="demo2">2</view>
+        <view id="demo3">3</view>
+    </scroll-view>
+</view>

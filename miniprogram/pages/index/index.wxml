@@ -4,11 +4,11 @@
   <!-- 用户 openid -->
   <view class="userinfo">
     <block wx:if="{{canIUseOpenData}}" class="userinfo-opendata">
-      <view class="userinfo-block-avatar" bindtap="bindViewTap">
-        <open-data type="userAvatarUrl"></open-data>
+      <view class="userinfo-block-avatar" bindtap="onAvatarTapped">
+        <open-data type="userAvatarUrl" ></open-data>
       </view>
     </block>
-    <block wx:elif="{{!hasUserInfo}}">
+    <block wx:elif="{{!hasUserInfo}}" >
       <button 
         wx:if="{{canIUseGetUserProfile}}" 
         bindtap="getUserProfile"
@@ -29,15 +29,22 @@
       <image bindtap="bindViewTap" class="userinfo-block-avatar" src="{{avatarUrl}}" mode="cover"></image>
     </block>
     <view class="userinfo-nickname-wrapper">
-      <button class="userinfo-nickname" bindtap="onGetOpenid">点击获取 openid</button>
+      <!--button class="userinfo-nickname" bindtap="onGetOpenid">点击获取 openid</button-->
+      <view>
+        <text wx:if="{{logged}}">欢迎您,{{userInfo.nickName}}</text>
+        <text wx:else>您好,请您授权登录!</text>
+      </view>
     </view>
   </view>
-
+  <view class="padding-xl" wx:if="{{!logged}}">
+    <button class="cu-btn block bg-blue margin-tb-sm lg" bindtap="getUserProfile">
+      <text class="cuIcon-profile"></text> 授权登录</button>
+  </view>
 
   <!-- 上传图片 -->
-  <view class="uploader">
+  <view class="uploader" wx:if="{{logged}}">
     <view class="uploader-text" bindtap="doUpload">
-      <text>上传图片</text>
+      <text>上传发票</text>
     </view>
     <view class="uploader-container" wx:if="{{imgUrl}}">
       <image class="uploader-image" src="{{imgUrl}}" mode="aspectFit" bindtap="previewImg"></image>
@@ -45,10 +52,9 @@
   </view>
 
   <!-- 上传图片 -->
-  <view class="uploader">
+  <view class="uploader" wx:if="{{logged}}">
     <view class="uploader-text" bindtap="checkDatabase">
       <text>查看已有发票</text>
     </view>
   </view>
-
 </view>

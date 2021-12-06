@@ -25,42 +25,45 @@ Page({
         canIUseGetUserProfile: true,
       })
     }
-    if (!this.logged){
+    if (!this.data.logged){
       wx.login({
-        timeout: 0,
         success(res){
-          wx.getUserProfile({
-            desc: '展示用户信息', // 声明获取用户个人信息后的用途，后续会展示在弹窗中，请谨慎填写
-            success: (res) => {
-              this.setData({
-                avatarUrl: res.userInfo.avatarUrl,
-                userInfo: res.userInfo,
-                hasUserInfo: true,
-              })
-            }
-          })
+          
         }
       })
-      //wx.showToast({
-      //  icon: "none",
-      //  title: '未登录',
-      //})
-      //wx.redirectTo({
-      //  url: '../userLogin/userLogin',
-      //})
     }
+  },
+
+  onAvatarTapped() {
+    console.log("Avatar Tapped")
   },
 
   getUserProfile() {
     // 推荐使用wx.getUserProfile获取用户信息，开发者每次通过该接口获取用户个人信息均需用户确认，开发者妥善保管用户快速填写的头像昵称，避免重复弹窗
     wx.getUserProfile({
-      desc: '展示用户信息', // 声明获取用户个人信息后的用途，后续会展示在弹窗中，请谨慎填写
+      desc: '获取您的微信号以登录系统', // 声明获取用户个人信息后的用途，后续会展示在弹窗中，请谨慎填写
       success: (res) => {
+        console.log("获取用户信息成功")
         this.setData({
           avatarUrl: res.userInfo.avatarUrl,
           userInfo: res.userInfo,
           hasUserInfo: true,
         })
+        this.setData({logged:true})
+        this.GetOpenid()
+        wx.showToast({
+          title: '登陆成功',
+        })
+      },
+      fail: (res)=>{
+        wx.showToast({
+          icon: 'error',
+          title: '登陆失败',
+        })
+        console.log(res)
+      },
+      complete: (res)=>{
+
       }
     })
   },
@@ -76,7 +79,7 @@ Page({
     }
   },
 
-  onGetOpenid: function() {
+  GetOpenid: function() {
     // 调用云函数
     wx.cloud.callFunction({
       name: 'login',
@@ -84,59 +87,66 @@ Page({
       success: res => {
         console.log('[云函数] [login] user openid: ', res.result.openid)
         app.globalData.openid = res.result.openid
-        wx.navigateTo({
-          url: '../userConsole/userConsole',
-        })
+        //wx.navigateTo({
+        //  url: '../userConsole/userConsole',
+        //})
       },
       fail: err => {
         console.error('[云函数] [login] 调用失败', err)
-        wx.navigateTo({
-          url: '../deployFunctions/deployFunctions',
+        wx.showToast({
+          icon: 'error',
+          title: '无法获取openid',
         })
+        //wx.navigateTo({
+        //  url: '../deployFunctions/deployFunctions',
+        //})
       }
     })
   },
 
-  // 上传图片
-  doUpload: function () {
-    // 选择图片
-    wx.chooseImage({
-      count: 1,
-      sizeType: ['compressed'],
-      sourceType: ['album', 'camera'],
+  uploadPDF: function(){
+    wx.chooseMessageFile({
+      count: 100,
+      type: "file",
+      extension: ["pdf"],
       success: function (res) {
         wx.showLoading({
           title: '上传中',
         })
-
-        const filePath = res.tempFilePaths[0]
+        res.tempFiles.forEach((tempFile)=>{
+          const filePath = tempFile.path
         
-        // 上传图片
-        const cloudPath = `my-image${filePath.match(/\.[^.]+?$/)[0]}`
-        wx.cloud.uploadFile({
-          cloudPath,
-          filePath,
-          success: res => {
-            console.log('[上传文件] 成功：', res)
-
-            app.globalData.fileID = res.fileID
-            app.globalData.cloudPath = cloudPath
-            app.globalData.imagePath = filePath
-            
-            wx.navigateTo({
-              url: '../storageConsole/storageConsole'
-            })
-          },
-          fail: e => {
-            console.error('[上传文件] 失败：', e)
-            wx.showToast({
-              icon: 'none',
-              title: '上传失败',
-            })
-          },
-          complete: () => {
-            wx.hideLoading()
-          }
+          // 上传图片
+          //const cloudPath = `my-pdf${filePath.match(/\.[^.]+?$/)[0]}`
+          const cloudPath = `${app.globalData.openid}/${tempFile.name}`
+          wx.cloud.uploadFile({
+            cloudPath,
+            filePath,
+            success: res => {
+              console.log('[上传文件] 成功：', res)
+  
+              //app.globalData.fileID = res.fileID
+              //app.globalData.cloudPath = cloudPath
+              //app.globalData.imagePath = filePath
+              
+              //wx.navigateTo({
+              //  url: '../storageConsole/storageConsole'
+              //})
+              wx.showToast({
+                title: '上传成功',
+              })
+            },
+            fail: e => {
+              console.error('[上传文件] 失败：', e)
+              wx.showToast({
+                icon: 'error',
+                title: '上传失败',
+              })
+            },
+            complete: () => {
+              wx.hideLoading()
+            }
+          })
         })
       },
       fail: e => {
@@ -144,9 +154,84 @@ Page({
       }
     })
   },
+  uploadImage:function(){
+    const userInfo = this.data.userInfo
+    console.log(userInfo)
+    wx.chooseImage({
+      count: 100,
+      sizeType: ['compressed'],
+      sourceType: ['album', 'camera'],
+      success: function (res) {
+        wx.showLoading({
+          title: '上传中',
+        })
+        res.tempFilePaths.forEach((tempFilePath)=>{
+          // 上传图片
+          var filePath = tempFilePath
+          //const cloudPath = `my-image${filePath.match(/\.[^.]+?$/)[0]}`
+          const cloudPath = `${app.globalData.openid}/my-image${filePath.match(/\.[^.]+?$/)[0]}`
+          wx.cloud.uploadFile({
+            cloudPath,
+            filePath,
+            success: res => {
+              console.log('[上传文件] 成功：', res)
+  
+              //app.globalData.fileID = res.fileID
+              //app.globalData.cloudPath = cloudPath
+              //app.globalData.imagePath = filePath
+              
+              //wx.navigateTo({
+              //  url: '../storageConsole/storageConsole'
+              //})
+              wx.showToast({
+                title: '上传成功',
+              })
+            },
+            fail: e => {
+              console.error('[上传文件] 失败：', e)
+              wx.showToast({
+                icon: 'none',
+                title: '上传失败',
+              })
+            },
+            complete: () => {
+              wx.hideLoading()
+            }
+          })
+        })
+      },
+      fail: e => {
+        console.error(e)
+      }
+    })
+  },
+
+  // 上传发票
+  doUpload: function () {
+    var that = this;
+    wx.showActionSheet({
+      itemList: ["pdf","图片"],
+      success(res){
+        console.log(res.tapIndex)
+        if(res.tapIndex==0){
+          that.uploadPDF()
+        }
+        else if(res.tapIndex==1){
+          that.uploadImage()
+        }
+      },
+      fail(res){
+        wx.showToast({
+          icon: "error",
+          title: console.log(res.errMsg),
+        })
+      }
+    })
+  },
+
   checkDatabase: function(){
-    wx.showToast({
-      title: '查看已有发票',
+    wx.navigateTo({
+      url: `../invoiceList/invoiceList?openid=${app.globalData.openid}`,
     })
   }
 })
