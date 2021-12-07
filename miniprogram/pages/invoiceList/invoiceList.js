@@ -1,4 +1,5 @@
 // pages/invoiceList/invoiceList.js
+const MAX_LIMIT = 20
 Page({
 
     /**
@@ -6,24 +7,39 @@ Page({
      */
     data: {
       loaded: false,
-      loadPerPage: 20,
+      pageCount: 0,
       loadedCount:0,
       totalCount:0,
+      invoiceList:[
+
+      ],
     },
+    
 
     /**
      * 生命周期函数--监听页面加载
      */
     onLoad: function (options) {
-        const db = wx.cloud.database();
-        var userOpenid = options.openid;
-        db.collection('registeredUsers').where({
+      const db = wx.cloud.database();
+      var userOpenid = options.openid;
+      db.collection('registeredUsers')
+        .skip(this.data.pageCount*MAX_LIMIT)
+        .limit(MAX_LIMIT)
+        .where({
           _openid: userOpenid
-        }).get().then(res=>{
+        })
+        .get()
+        .then(res=>{
+          res.data[0].invoices.map(item=>{
+            item.uploadDate=item.uploadDate.toLocaleString().match(/\d+\/\d+\/\d+/)[0];
+            return item
+          })
           this.setData({
             loaded : true,
-            loadedCount : res.data[0].invoiceCount%this.data.loadPerPage,
+            loadedCount : Math.min(res.data[0].invoiceCount,MAX_LIMIT),
+            pageCount: 1,
             totalCount : res.data[0].invoiceCount,
+            invoiceList: res.data[0].invoices
           })
         })
     },
@@ -60,14 +76,47 @@ Page({
      * 页面相关事件处理函数--监听用户下拉动作
      */
     onPullDownRefresh: function () {
-
+      this.setData({loaded : true})
+      const db = wx.cloud.database();
+      var userOpenid = options.openid;
+      db.collection('registeredUsers')
+        .skip(this.data.pageCount*MAX_LIMIT)
+        .limit(MAX_LIMIT)
+        .where({
+          _openid: userOpenid
+        }).get()
+          .then(res=>{
+          this.setData({
+            loaded : true,
+            loadedCount : Math.min(res.data[0].invoiceCount,MAX_LIMIT),
+            pageCount: 1,
+            totalCount : res.data[0].invoiceCount,
+            invoiceList: res.data[0].invoices
+        })
+      })
     },
 
     /**
      * 页面上拉触底事件的处理函数
      */
     onReachBottom: function () {
-
+      const db = wx.cloud.database();
+      var userOpenid = options.openid;
+      db.collection('registeredUsers')
+        .skip(this.data.pageCount*MAX_LIMIT)
+        .limit(MAX_LIMIT)
+        .where({
+          _openid: userOpenid
+        }).get()
+          .then(res=>{
+          this.setData({
+            loaded : true,
+            loadedCount : Math.min(res.data[0].invoiceCount,MAX_LIMIT),
+            pageCount: 1,
+            totalCount : res.data[0].invoiceCount,
+            invoiceList: res.data[0].invoices
+        })
+      })
     },
 
     /**
@@ -102,5 +151,8 @@ Page({
       this.setData({
         ListTouchDirection: null
       })
+    },
+    onItemTapped(e){
+      console.log(e.currentTarget.dataset.invoiceId)
     },
 })
