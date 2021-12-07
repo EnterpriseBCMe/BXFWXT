@@ -13,6 +13,7 @@ Page({
       invoiceList:[
 
       ],
+      invoiceUrl:"https://ossweb-img.qq.com/images/lol/web201310/skin/big91012.jpg",
     },
     
 
@@ -153,6 +154,16 @@ Page({
       })
     },
     onItemTapped(e){
-      console.log(e.currentTarget.dataset.invoiceId)
+      console.log(e.currentTarget.dataset.id)
+    },
+    showModal(e) {
+      this.setData({
+        modalName: e.currentTarget.dataset.target
+      })
+    },
+    hideModal(e) {
+      this.setData({
+        modalName: null
+      })
     },
 })

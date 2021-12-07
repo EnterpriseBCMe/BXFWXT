@@ -5,13 +5,15 @@
     </view>
     <scroll-view>
         <view class="cu-list menu-avatar">
-            <view class="cu-item {{modalName=='move-box-'+ index?'move-cur':''}}" wx:for="{{invoiceList}}" wx:key bindtouchstart="ListTouchStart" bindtouchmove="ListTouchMove" bindtouchend="ListTouchEnd" data-target="move-box-{{index}}" bindtap="onItemTapped" data-invoiceId="{{item.id}}">
-                <!--view class="cu-avatar round lg" style="background-image:url(https://ossweb-img.qq.com/images/lol/web201310/skin/big2100{{index+1}}.jpg);"></view-->
+            <view class="cu-item {{modalName=='move-box-'+ index?'move-cur':''}}" wx:for="{{invoiceList}}" wx:key bindtouchstart="ListTouchStart" bindtouchmove="ListTouchMove" bindtouchend="ListTouchEnd" data-target="move-box-{{index}}" bindtap="onItemTapped" data-id="{{item.id}}">
+                <view class="cu-avatar radius lg" style="background-image:url(https://ossweb-img.qq.com/images/lol/web201310/skin/big2100{{index+1}}.jpg);" catchtap="showModal" data-target="Image"></view>
+
+
                 <view class="content">
                     <view class="text-grey">{{item.id}}</view>
-                    <view class="text-gray text-sm">
+                    <!--view class="text-gray text-sm">
                         <text class="cuIcon-infofill text-red"></text> 消息未送达
-                    </view>
+                    </view-->
                 </view>
                 <view class="action">
                     <view class="text-grey text-xs">{{item.uploadDate}}</view>
@@ -21,6 +23,20 @@
                 <view class="move">
                     <view class="bg-grey">置顶</view>
                     <view class="bg-red">删除</view>
+                </view>
+            </view>
+        </view>
+        <view class="cu-modal {{modalName=='Image'?'show':''}}">
+            <view class="cu-dialog">
+                <view class="bg-img" style="background-image: url({{invoiceUrl}});height:200px;">
+                    <view class="cu-bar justify-end text-white">
+                        <view class="action" bindtap="hideModal">
+                            <text class="cuIcon-close "></text>
+                        </view>
+                    </view>
+                </view>
+                <view class="cu-bar bg-white">
+                    <view class="action margin-0 flex-sub  solid-left" bindtap="hideModal">关闭预览</view>
                 </view>
             </view>
         </view>
